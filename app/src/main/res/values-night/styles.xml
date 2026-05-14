@@ -1,0 +1,11 @@
+<resources>
+    <style name="Theme.CEM" parent="Theme.MaterialComponents.DayNight.NoActionBar">
+        <item name="colorPrimary">@color/purple_500</item>
+        <item name="colorSecondary">@color/teal_200</item>
+    </style>
+
+    <style name="AppTheme.Day" parent="Theme.CEM">
+        <item name="background">@android:color/black</item>
+        <item name="android:textColor">@android:color/white</item>
+    </style>
+</resources>

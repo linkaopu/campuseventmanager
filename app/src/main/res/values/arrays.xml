@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string-array name="event_types">
+        <item>学术讲座</item>
+        <item>文艺活动</item>
+        <item>体育比赛</item>
+        <item>其他</item>
+    </string-array>
+</resources>

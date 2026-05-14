@@ -7,85 +7,182 @@ import android.view.View;
 import android.view.ViewConfiguration;
 import android.widget.FrameLayout;
 
+/**
+ * 侧滑菜单布局组件
+ * <p>
+ * 自定义FrameLayout实现侧滑菜单功能，支持用户从右向左滑动显示操作菜单。
+ * 布局结构要求：
+ * - 第一个子View为内容区域（滑动时会被拖动）
+ * - 第二个子View为菜单区域（默认隐藏在右侧）
+ * </p>
+ */
 public class SwipeMenuItemLayout extends FrameLayout {
+    /**
+     * 屏幕宽度
+     */
     private int mScreenWidth;
+
+    /**
+     * 菜单宽度（默认160dp转换为像素）
+     */
     private int mMenuWidth;
+
+    /**
+     * 触摸滑动阈值（判断是否开始滑动的最小距离）
+     */
     private int mTouchSlop;
+
+    /**
+     * 按下时的X坐标
+     */
     private float mDownX;
+
+    /**
+     * 按下时的Y坐标
+     */
     private float mDownY;
+
+    /**
+     * 是否正在拖拽状态
+     */
     private boolean mDragging;
+
+    /**
+     * 是否已发生滑动（用于区分点击和滑动事件）
+     */
     private boolean mSwiped;
+
+    /**
+     * 内容视图（第一个子View）
+     */
     private View mContentView;
+
+    /**
+     * 菜单视图（第二个子View）
+     */
     private View mMenuView;
+
+    /**
+     * 当前偏移量（内容视图向左滑动的距离）
+     */
     private int mCurrentOffset = 0;
 
+    /**
+     * 构造函数
+     *
+     * @param context 上下文
+     */
     public SwipeMenuItemLayout(Context context) {
         this(context, null);
     }
 
+    /**
+     * 构造函数
+     *
+     * @param context 上下文
+     * @param attrs   属性集合
+     */
     public SwipeMenuItemLayout(Context context, AttributeSet attrs) {
         this(context, attrs, 0);
     }
 
+    /**
+     * 构造函数
+     *
+     * @param context  上下文
+     * @param attrs    属性集合
+     * @param defStyle 默认样式
+     */
     public SwipeMenuItemLayout(Context context, AttributeSet attrs, int defStyle) {
         super(context, attrs, defStyle);
         init(context);
     }
 
+    /**
+     * 初始化方法
+     * <p>
+     * 获取屏幕宽度、触摸滑动阈值和菜单宽度。
+     * </p>
+     *
+     * @param context 上下文
+     */
     private void init(Context context) {
+        // 获取屏幕宽度
         mScreenWidth = context.getResources().getDisplayMetrics().widthPixels;
+        // 获取触摸滑动阈值（系统定义的最小滑动距离）
         mTouchSlop = ViewConfiguration.get(context).getScaledTouchSlop();
+        // 设置菜单宽度为160dp（转换为像素）
         mMenuWidth = (int) (160 * context.getResources().getDisplayMetrics().density);
     }
 
+    /**
+     * 布局加载完成后回调
+     * <p>
+     * 获取内容视图和菜单视图的引用。
+     * </p>
+     */
     @Override
     protected void onFinishInflate() {
         super.onFinishInflate();
+        // 确保至少有两个子View（内容区和菜单区）
         if (getChildCount() >= 2) {
-            mContentView = getChildAt(0);
-            mMenuView = getChildAt(1);
+            mContentView = getChildAt(0); // 第一个子View为内容区域
+            mMenuView = getChildAt(1); // 第二个子View为菜单区域
         }
     }
 
     /**
-     * 重写onMeasure方法，用于自定义测量控件的尺寸
-     * 
-     * @param widthMeasureSpec  宽度测量规格，包含测量模式和大小
-     * @param heightMeasureSpec 高度测量规格，包含测量模式和大小
+     * 测量控件尺寸
+     * <p>
+     * 自定义测量逻辑：总宽度为屏幕宽度+菜单宽度，确保菜单能完全显示。
+     * </p>
+     *
+     * @param widthMeasureSpec  宽度测量规格
+     * @param heightMeasureSpec 高度测量规格
      */
     @Override
     protected void onMeasure(int widthMeasureSpec, int heightMeasureSpec) {
-        // 首先调用父类的onMeasure方法，确保基本的测量逻辑被执行
         super.onMeasure(widthMeasureSpec, heightMeasureSpec);
-        // 计算总宽度为屏幕宽度加上菜单宽度
+        // 总宽度 = 屏幕宽度 + 菜单宽度
         int totalWidth = mScreenWidth + mMenuWidth;
-        // 获取测量得到的高度
         int totalHeight = getMeasuredHeight();
-        // 设置测量后的尺寸为计算得到的总宽度和高度
         setMeasuredDimension(totalWidth, totalHeight);
 
-        // 如果内容视图不为空，则测量内容视图
+        // 测量内容视图（宽度=屏幕宽度）
         if (mContentView != null) {
-            // 测量内容视图，宽度为屏幕宽度，高度为总高度，使用精确测量模式
             mContentView.measure(
                     MeasureSpec.makeMeasureSpec(mScreenWidth, MeasureSpec.EXACTLY),
                     MeasureSpec.makeMeasureSpec(totalHeight, MeasureSpec.EXACTLY));
         }
-        // 如果菜单视图不为空，则测量菜单视图
+        // 测量菜单视图（宽度=菜单宽度）
         if (mMenuView != null) {
-            // 测量菜单视图，宽度为菜单宽度，高度为总高度，使用精确测量模式
             mMenuView.measure(
                     MeasureSpec.makeMeasureSpec(mMenuWidth, MeasureSpec.EXACTLY),
                     MeasureSpec.makeMeasureSpec(totalHeight, MeasureSpec.EXACTLY));
         }
     }
 
+    /**
+     * 布局子View
+     * <p>
+     * 内容视图显示在屏幕左侧，菜单视图显示在屏幕右侧（默认隐藏）。
+     * </p>
+     *
+     * @param changed 是否发生变化
+     * @param l       左边界
+     * @param t       上边界
+     * @param r       右边界
+     * @param b       下边界
+     */
     @Override
     protected void onLayout(boolean changed, int l, int t, int r, int b) {
         super.onLayout(changed, l, t, r, b);
         if (mContentView != null && mMenuView != null) {
+            // 内容视图从(0,0)到(屏幕宽度, 高度)
             mContentView.layout(0, 0, mScreenWidth, getHeight());
+            // 菜单视图从(屏幕宽度,0)到(屏幕宽度+菜单宽度, 高度)
             mMenuView.layout(mScreenWidth, 0, mScreenWidth + mMenuWidth, getHeight());
+            // 应用当前偏移量
             mContentView.setTranslationX(-mCurrentOffset);
             mMenuView.setTranslationX(-mCurrentOffset);
         }
@@ -272,10 +369,18 @@ public class SwipeMenuItemLayout extends FrameLayout {
         });
     }
 
+    /**
+     * 判断菜单是否处于打开状态
+     *
+     * @return true: 菜单已打开，false: 菜单已关闭
+     */
     public boolean isMenuOpen() {
         return mCurrentOffset >= mMenuWidth;
     }
 
+    /**
+     * 关闭菜单（带动画效果）
+     */
     public void closeMenu() {
         animateToOffset(0);
     }
